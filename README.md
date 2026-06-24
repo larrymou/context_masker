@@ -19,14 +19,16 @@ Agent Tool Output → [Mask] → LLM API → [Restore] → Agent
 - **Configurable categories** - Enable/disable PII, credentials, infrastructure patterns
 - **Session-scoped storage** - TTL-based mapping expiration
 - **Tool integration** - Works with Claude Code, OpenCode, Cursor, Hermes, and more
+- **Logging & metrics** - Track masking statistics and performance
+- **Custom patterns** - Add your own detection rules
 
 ## Supported patterns
 
 | Category | Patterns |
 |----------|----------|
-| PII | Email, phone, SSN |
-| Credentials | API keys, AWS secrets, passwords, OAuth tokens, JWTs |
-| Infrastructure | Database URLs, Redis URLs, private keys |
+| PII | Email, phone, SSN, IPv4, credit card |
+| Credentials | API keys, AWS secrets, passwords, OAuth tokens, JWTs, GitHub/Stripe/Slack tokens |
+| Infrastructure | Database URLs, Redis URLs, private keys (RSA, EC, DSA, OpenSSH) |
 
 ## Installation
 
@@ -120,11 +122,16 @@ sessionTTL = 300000  # 5 minutes
 email = true
 phone = true
 ssn = true
+ipv4 = true
+credit_card = true
 
 [patterns.credentials]
 api_key = true
 aws_secret = true
 password = true
+github_token = true
+stripe_key = true
+slack_token = true
 ```
 
 ## API Reference
@@ -136,7 +143,16 @@ Creates a new masker instance.
 ```ts
 const masker = createContextMasker({
   enabled: ['pii', 'credentials'],  // Categories to detect
-  sessionTTL: 300000                 // Session TTL in ms
+  sessionTTL: 300000,               // Session TTL in ms
+  logging: true,                    // Enable debug logging
+  customPatterns: [                 // Add custom patterns
+    {
+      name: 'custom_id',
+      regex: '\\bID-[0-9]{6}\\b',
+      placeholder: '<<CUSTOM_ID:***>>',
+      category: 'pii',
+    }
+  ]
 });
 ```
 
@@ -164,6 +180,58 @@ Clears the session store.
 
 ```ts
 masker.clear();
+```
+
+### `masker.getMetrics()`
+
+Returns masking statistics.
+
+```ts
+const metrics = masker.getMetrics();
+// {
+//   totalCalls: 10,
+//   totalMasked: 25,
+//   totalRestored: 20,
+//   detectionsByType: { email: 10, api_key: 8, ... },
+//   averageProcessingTime: 0.5
+// }
+```
+
+### `masker.addCustomPattern(pattern)`
+
+Adds a custom detection pattern.
+
+```ts
+masker.addCustomPattern({
+  name: 'internal_id',
+  regex: '\\bINT-[0-9]{8}\\b',
+  placeholder: '<<INTERNAL_ID:***>>',
+  category: 'pii',
+});
+```
+
+### `masker.removeCustomPattern(name)`
+
+Removes a custom pattern by name.
+
+```ts
+masker.removeCustomPattern('internal_id');
+```
+
+### `masker.setLogging(enabled)`
+
+Enable or disable debug logging.
+
+```ts
+masker.setLogging(true);
+```
+
+### `masker.resetMetrics()`
+
+Reset all metrics to zero.
+
+```ts
+masker.resetMetrics();
 ```
 
 ## License
