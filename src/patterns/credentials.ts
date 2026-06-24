@@ -3,7 +3,7 @@ import { PatternConfig } from '../types.js';
 export const credentialPatterns: PatternConfig[] = [
   {
     name: 'api_key',
-    regex: /\b(?:api[_-]?key|apikey)[\s:=]+["']?[a-zA-Z0-9]{20,}["']?/gi,
+    regex: /\b(?:api[_-]?key|apikey)[\s:=]+["']?[a-zA-Z0-9._\-/+=]{20,}["']?/gi,
     placeholder: () => '<<API_KEY:***>>',
     category: 'credentials',
   },
