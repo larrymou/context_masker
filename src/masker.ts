@@ -1,0 +1,43 @@
+import { Category, MaskResult, MaskerConfig, PatternConfig } from './types.js';
+import { detectSensitiveData, DetectionResult } from './engine/regex.js';
+import { SessionStore } from './session/store.js';
+import { getEnabledPatterns } from './patterns/index.js';
+
+export class Masker {
+  private store: SessionStore;
+  private categories: Category[];
+  private customPatterns: PatternConfig[];
+  private compiledRegexCache: Map<string, RegExp> = new Map();
+
+  constructor(config?: Partial<MaskerConfig>, customPatterns: PatternConfig[] = []) {
+    this.store = new SessionStore(config?.sessionTTL ?? 300000);
+    this.categories = config?.enabled ?? ['pii', 'credentials', 'infrastructure'];
+    this.customPatterns = customPatterns;
+  }
+
+  mask(text: string): MaskResult {
+    const detections = detectSensitiveData(text, this.categories, this.customPatterns);
+    const mappings = new Map<string, string>();
+    let masked = text;
+
+    // Process in reverse order to maintain string positions
+    for (let i = detections.length - 1; i >= 0; i--) {
+      const detection = detections[i];
+      const placeholder = detection.placeholder;
+      
+      masked = masked.slice(0, detection.start) + placeholder + masked.slice(detection.end);
+      mappings.set(placeholder, detection.value);
+      this.store.set(placeholder, detection.value);
+    }
+
+    return { masked, mappings };
+  }
+
+  getOriginal(placeholder: string): string | null {
+    return this.store.get(placeholder);
+  }
+
+  clear(): void {
+    this.store.clear();
+  }
+}

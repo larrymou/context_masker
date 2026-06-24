@@ -1,0 +1,21 @@
+# config/default.toml
+enabled = ["pii", "credentials", "infrastructure"]
+
+sessionTTL = 300000  # 5 minutes
+
+[patterns.pii]
+email = true
+phone = true
+ssn = true
+
+[patterns.credentials]
+api_key = true
+aws_secret = true
+password = true
+oauth_token = true
+jwt = true
+
+[patterns.infrastructure]
+database_url = true
+redis_url = true
+private_key = true
