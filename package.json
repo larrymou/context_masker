@@ -1,6 +1,6 @@
 {
   "name": "context-masker",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Bidirectional reversible desensitization middleware for coding agents",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
