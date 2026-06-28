@@ -145,7 +145,6 @@ const masker = createContextMasker({
     {
       name: 'custom_id',
       regex: '\\bID-[0-9]{6}\\b',
-      placeholder: '<<CUSTOM_ID:***>>',
       category: 'pii',
     }
   ]
@@ -210,7 +209,6 @@ Adds a custom detection pattern.
 masker.addCustomPattern({
   name: 'internal_id',
   regex: '\\bINT-[0-9]{8}\\b',
-  placeholder: '<<INTERNAL_ID:***>>',
   category: 'pii',
 });
 ```

@@ -48,7 +48,6 @@ describe('ContextMasker Advanced Features', () => {
       masker.addCustomPattern({
         name: 'custom_id',
         regex: '\\bID-[0-9]{6}\\b',
-        placeholder: '<<CUSTOM_ID:***>>',
         category: 'pii',
       });
 
@@ -60,7 +59,6 @@ describe('ContextMasker Advanced Features', () => {
       masker.addCustomPattern({
         name: 'temp_pattern',
         regex: '\\bTEMP-[0-9]+\\b',
-        placeholder: '<<TEMP:***>>',
         category: 'pii',
       });
 
@@ -77,7 +75,6 @@ describe('ContextMasker Advanced Features', () => {
           {
             name: 'config_pattern',
             regex: '\\bCFG-[A-Z]+\\b',
-            placeholder: '<<CONFIG:***>>',
             category: 'pii',
           },
         ],
