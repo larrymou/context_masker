@@ -7,6 +7,7 @@ const SESSION_FILE = path.join(SESSION_DIR, 'session.json');
 
 interface SessionData {
   mappings: Record<string, string>;
+  counters: Record<string, number>;
 }
 
 function loadSession(): SessionData {
@@ -15,7 +16,7 @@ function loadSession(): SessionData {
       return JSON.parse(fs.readFileSync(SESSION_FILE, 'utf-8'));
     }
   } catch {}
-  return { mappings: {} };
+  return { mappings: {}, counters: {} };
 }
 
 function saveSession(data: SessionData): void {
@@ -36,22 +37,26 @@ const text = args.join(' ');
 
 switch (command) {
   case 'mask':
+    masker.setCounters(session.counters);
     const { masked, mappings } = masker.mask(text);
     
     for (const [placeholder, original] of mappings) {
       session.mappings[placeholder] = original;
     }
+    session.counters = masker.getCounters();
     saveSession(session);
     
     console.log(masked);
     break;
   case 'restore':
+    masker.setCounters(session.counters);
     masker.loadMappings(session.mappings);
     const restored = masker.restore(text);
     console.log(restored);
     break;
   case 'clear':
     session.mappings = {};
+    session.counters = {};
     saveSession(session);
     masker.clear();
     console.log('Session cleared');

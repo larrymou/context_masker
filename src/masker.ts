@@ -42,6 +42,16 @@ export class Masker {
     }
   }
 
+  getCounters(): Record<string, number> {
+    return Object.fromEntries(this.counter);
+  }
+
+  setCounters(counters: Record<string, number>): void {
+    for (const [type, count] of Object.entries(counters)) {
+      this.counter.set(type, count);
+    }
+  }
+
   clear(): void {
     this.counter.clear();
   }

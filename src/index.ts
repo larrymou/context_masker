@@ -12,6 +12,8 @@ export interface ContextMasker {
   restore: (text: string) => string;
   clear: () => void;
   loadMappings: (entries: Record<string, string>) => void;
+  getCounters: () => Record<string, number>;
+  setCounters: (counters: Record<string, number>) => void;
   getMetrics: () => MaskingMetrics;
   resetMetrics: () => void;
   setLogging: (enabled: boolean) => void;
@@ -87,6 +89,12 @@ export function createContextMasker(overrides?: Partial<MaskerConfig>): ContextM
     
     loadMappings: (entries: Record<string, string>) => {
       masker.loadMappings(entries);
+    },
+    
+    getCounters: () => masker.getCounters(),
+    
+    setCounters: (counters: Record<string, number>) => {
+      masker.setCounters(counters);
     },
     
     getMetrics: () => logger.getMetrics(),
