@@ -7,11 +7,9 @@ set -e
 MASKER_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MASKER_BIN="$MASKER_DIR/../dist/cli.js"
 
-# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
 usage() {
     echo "Usage: context-masker [command] [args...]"
@@ -20,75 +18,61 @@ usage() {
     echo "  mask <text>     Mask sensitive data in text"
     echo "  restore <text>  Restore masked placeholders"
     echo "  wrap <command>  Wrap a command to auto-mask output"
-    echo "  init <tool>     Initialize for specific tool"
+    echo "  setup <tool>    Print integration instructions for a tool"
     echo ""
     echo "Examples:"
     echo "  context-masker mask 'Email: user@example.com'"
     echo "  context-masker wrap git status"
-    echo "  context-masker init claude-code"
+    echo "  context-masker setup claude-code"
 }
 
 mask_text() {
-    local text="$1"
-    node "$MASKER_BIN" mask "$text"
+    node "$MASKER_BIN" mask "$1"
 }
 
 restore_text() {
-    local text="$1"
-    node "$MASKER_BIN" restore "$text"
+    node "$MASKER_BIN" restore "$1"
 }
 
 wrap_command() {
-    local cmd="$*"
     local output
-    output=$($cmd 2>&1) || true
-    
-    local masked
-    masked=$(mask_text "$output")
-    
-    echo "$masked"
+    output=$("$@" 2>&1)
+    local rc=$?
+
+    echo "$(mask_text "$output")"
+    exit $rc
 }
 
-init_tool() {
+setup_tool() {
     local tool="$1"
-    
     case "$tool" in
         claude-code|claude)
-            echo -e "${GREEN}Initializing for Claude Code...${NC}"
-            cat > ~/.claude/settings.json << 'EOF'
-{
-  "env": {
-    "CONTEXT_MASKER_ENABLED": "1"
-  }
-}
-EOF
-            echo -e "${GREEN}Done! Restart Claude Code to apply.${NC}"
+            echo "Claude Code integration:"
+            echo "  Add to ~/.bashrc or ~/.zshrc:"
+            echo "    alias claude='context-masker wrap claude'"
             ;;
         opencode)
-            echo -e "${GREEN}Initializing for OpenCode...${NC}"
-            echo "Add to your opencode config:"
-            echo '  "middleware": ["context-masker"]'
+            echo "OpenCode integration:"
+            echo '  Add to opencode config: "middleware": ["context-masker"]'
             ;;
-        cursor)
-            echo -e "${GREEN}Initializing for Cursor...${NC}"
-            echo "Add to your .cursorrules:"
-            echo '  Use context-masker to mask sensitive data'
+        cursor|windsurf)
+            echo "Cursor/Windsurf integration:"
+            echo "  Add to .cursorrules:"
+            echo "    When handling tool outputs containing sensitive data, use context-masker to mask them"
             ;;
-        hermes|windsurf)
-            echo -e "${GREEN}Initializing for Hermes/Windsurf...${NC}"
-            echo "Add to your agent config:"
-            echo '  preToolUse: "context-masker mask"'
-            echo '  postToolUse: "context-masker restore"'
+        hermes)
+            echo "Hermes integration:"
+            echo "  Add to agent.config.yml:"
+            echo '    tools: [{name: shell, preUse: "context-masker mask", postUse: "context-masker restore"}]'
             ;;
         *)
-            echo -e "${RED}Unknown tool: $tool${NC}"
-            echo "Supported tools: claude-code, opencode, cursor, hermes, windsurf"
+            echo -e "${RED}Unknown tool: $tool${NC}" >&2
+            echo "Supported: claude-code, opencode, cursor, hermes, windsurf" >&2
             exit 1
             ;;
     esac
 }
 
-# Main
 case "${1:-}" in
     mask)
         shift
@@ -102,9 +86,9 @@ case "${1:-}" in
         shift
         wrap_command "$@"
         ;;
-    init)
+    setup)
         shift
-        init_tool "${1:-}"
+        setup_tool "${1:-}"
         ;;
     --help|-h|help)
         usage

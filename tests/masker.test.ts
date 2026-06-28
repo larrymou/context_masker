@@ -42,4 +42,38 @@ describe('Masker', () => {
     expect(result.masked).toBe(text);
     expect(result.mappings.size).toBe(0);
   });
+
+  it('should increment counter across multiple mask calls', () => {
+    masker.mask('Email: a@b.com');
+    const result = masker.mask('Email: c@d.com');
+    
+    expect(result.masked).toContain('<<EMAIL:1***>>');
+    expect(result.mappings.get('<<EMAIL:1***>>')).toBe('c@d.com');
+  });
+
+  it('should set and get counters', () => {
+    masker.setCounters({ email: 5 });
+    const counters = masker.getCounters();
+    
+    expect(counters.email).toBe(5);
+    
+    const result = masker.mask('Email: test@test.com');
+    expect(result.masked).toContain('<<EMAIL:5***>>');
+  });
+
+  it('should load mappings into store', () => {
+    masker.loadMappings({ '<<EMAIL:0***>>': 'loaded@test.com' });
+    const original = store.get('<<EMAIL:0***>>');
+    
+    expect(original).toBe('loaded@test.com');
+  });
+
+  it('should clear counter and store', () => {
+    masker.mask('Email: a@b.com');
+    masker.clear();
+    
+    const counters = masker.getCounters();
+    expect(Object.keys(counters)).toHaveLength(0);
+    expect(store.get('<<EMAIL:0***>>')).toBeNull();
+  });
 });

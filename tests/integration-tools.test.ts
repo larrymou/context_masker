@@ -156,4 +156,26 @@ npm notice authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOi
       expect(duration).toBeLessThan(500);
     });
   });
+
+  describe('patternFlags filtering', () => {
+    it('should disable specific patterns via patternFlags', () => {
+      const filtered = createContextMasker({
+        patternFlags: { pii: { email: false } },
+      });
+
+      const { masked, mappings } = filtered.mask('Email: test@test.com');
+      expect(masked).toBe('Email: test@test.com');
+      expect(mappings.size).toBe(0);
+    });
+
+    it('should keep other patterns enabled when one is disabled', () => {
+      const filtered = createContextMasker({
+        patternFlags: { pii: { email: false } },
+      });
+
+      const { masked } = filtered.mask('Email: test@test.com, DB: postgres://admin:pass@host/db');
+      expect(masked).toContain('test@test.com');
+      expect(masked).toContain('<<DATABASE_URL:0***>>');
+    });
+  });
 });

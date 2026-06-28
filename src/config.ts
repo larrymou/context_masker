@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as toml from 'toml';
 import { MaskerConfig, Category } from './types.js';
 
-const defaultConfigPath = path.join(process.cwd(), 'config', 'default.toml');
+const defaultConfigPath = path.join(__dirname, '..', 'config', 'default.toml');
 
 export function loadConfig(overrides?: Partial<MaskerConfig>): MaskerConfig {
   let fileConfig: Record<string, unknown> = {};

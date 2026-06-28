@@ -18,17 +18,10 @@ export interface CustomPattern {
   name: string;
   regex: string;
   flags?: string;
-  placeholder: string;
   category: Category;
 }
 
 export interface MaskResult {
   masked: string;
   mappings: Map<string, string>;
-}
-
-export interface SessionEntry {
-  placeholder: string;
-  original: string;
-  timestamp: number;
 }

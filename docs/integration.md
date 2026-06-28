@@ -14,18 +14,7 @@ npm install -g context-masker
 alias claude='context-masker wrap claude'
 ```
 
-### Method 2: Environment Variable
-
-```bash
-# In your shell profile
-export CONTEXT_MASKER_ENABLED=1
-export CONTEXT_MASKER_WRAP_COMMANDS=1
-
-# Then use claude normally
-claude
-```
-
-### Method 3: Hook Script
+### Method 2: Hook Script
 
 Create `~/.claude/hooks/pre-tool-use.sh`:
 

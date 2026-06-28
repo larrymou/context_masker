@@ -27,8 +27,8 @@ Agent Tool Output → [Mask] → LLM API → [Restore] → Agent
 | Category | Patterns |
 |----------|----------|
 | PII | Email, phone, SSN, IPv4, credit card |
-| Credentials | API keys, AWS secrets, passwords, OAuth tokens, JWTs, GitHub/Stripe/Slack tokens |
-| Infrastructure | Database URLs, Redis URLs, private keys (RSA, EC, DSA, OpenSSH) |
+| Credentials | API keys, AWS secrets, passwords, OAuth tokens, JWTs, GitHub/Stripe/Slack tokens, private keys (RSA, EC, DSA, OpenSSH) |
+| Infrastructure | Database URLs |
 
 ## Installation
 
