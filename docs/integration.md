@@ -64,7 +64,7 @@ export default {
       name: 'context-masker',
       setup(api) {
         const masker = createContextMasker();
-        api.on('tool-output', (output) => masker.mask(output));
+        api.on('tool-output', (output) => masker.mask(output).masked);
         api.on('llm-response', (response) => masker.restore(response));
       }
     }
@@ -87,7 +87,7 @@ LLM APIs.
 
 Example:
 - Input: "Database: postgres://admin:pass@host/db"
-- Masked: "Database: <<DB_URL:***>>"
+- Masked: "Database: <<DATABASE_URL:0***>>"
 ```
 
 ### Method 2: VS Code Extension
@@ -179,10 +179,10 @@ Verify the integration works:
 ```bash
 # Test masking
 context-masker mask 'Email: user@example.com, DB: postgres://admin:pass@host/db'
-# Output: {"masked":"Email: <<EMAIL:***>>, DB: <<DB_URL:***>>",...}
+# Output: Email: <<EMAIL:0***>>, DB: <<DATABASE_URL:0***>>
 
 # Test restoration
-context-masker restore 'Contact <<EMAIL:***>> at <<DB_URL:***>>'
+context-masker restore 'Contact <<EMAIL:0***>> at <<DATABASE_URL:0***>>'
 # Output: Contact user@example.com at postgres://admin:pass@host/db
 
 # Test with a command

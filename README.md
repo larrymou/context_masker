@@ -13,7 +13,7 @@ Agent Tool Output → [Mask] → LLM API → [Restore] → Agent
 ## Features
 
 - **Regex-based detection** - Fast, deterministic detection of sensitive data
-- **Informative placeholders** - LLM sees `<<EMAIL:***>>` instead of actual emails
+- **Informative placeholders** - LLM sees `<<EMAIL:0***>>` instead of actual emails
 - **Reversible masking** - Original values restored in LLM responses
 - **CLI & Library** - Use as command-line tool or import as TypeScript library
 - **Configurable categories** - Enable/disable PII, credentials, infrastructure patterns
@@ -47,10 +47,10 @@ const masker = createContextMasker();
 
 // Mask before sending to LLM
 const { masked } = masker.mask('Email: user@example.com, DB: postgres://admin:pass@host/db');
-// masked: "Email: <<EMAIL:***>>, DB: <<DB_URL:***>>"
+// masked: "Email: <<EMAIL:0***>>, DB: <<DATABASE_URL:0***>>"
 
 // Restore after receiving LLM response
-const restored = masker.restore('Contact <<EMAIL:***>> at <<DB_URL:***>>');
+const restored = masker.restore('Contact <<EMAIL:0***>> at <<DATABASE_URL:0***>>');
 // restored: "Contact user@example.com at postgres://admin:pass@host/db"
 ```
 
@@ -59,10 +59,10 @@ const restored = masker.restore('Contact <<EMAIL:***>> at <<DB_URL:***>>');
 ```bash
 # Mask sensitive data
 context-masker mask 'Email: user@example.com, DB: postgres://admin:pass@host/db'
-# Output: Email: <<EMAIL:***>>, DB: <<DB_URL:***>>
+# Output: Email: <<EMAIL:0***>>, DB: <<DATABASE_URL:0***>>
 
 # Restore placeholders
-context-masker restore 'Contact <<EMAIL:***>> at <<DB_URL:***>>'
+context-masker restore 'Contact <<EMAIL:0***>> at <<DATABASE_URL:0***>>'
 # Output: Contact user@example.com at postgres://admin:pass@host/db
 
 # Wrap a command to auto-mask output
@@ -122,17 +122,15 @@ sessionTTL = 300000  # 5 minutes
 email = true
 phone = true
 ssn = true
-ipv4 = true
-credit_card = true
 
 [patterns.credentials]
 api_key = true
 aws_secret = true
 password = true
-github_token = true
-stripe_key = true
-slack_token = true
 ```
+
+> Note: The `[patterns.*]` booleans are currently documentation only. Per-pattern
+> enable/disable is controlled at runtime via `patternFlags` in the config object.
 
 ## API Reference
 
@@ -145,6 +143,9 @@ const masker = createContextMasker({
   enabled: ['pii', 'credentials'],  // Categories to detect
   sessionTTL: 300000,               // Session TTL in ms
   logging: true,                    // Enable debug logging
+  patternFlags: {                   // Per-pattern enable/disable
+    pii: { credit_card: false },
+  },
   customPatterns: [                 // Add custom patterns
     {
       name: 'custom_id',
@@ -162,8 +163,9 @@ Masks sensitive data in text.
 
 ```ts
 const { masked, mappings } = masker.mask(text);
-// masked: string - Text with placeholders
+// masked: string - Text with numbered placeholders
 // mappings: Map<string, string> - Placeholder to original value mapping
+// e.g., "<<EMAIL:0***>>" → "user@example.com"
 ```
 
 ### `masker.restore(text)`
@@ -180,6 +182,14 @@ Clears the session store.
 
 ```ts
 masker.clear();
+```
+
+### `masker.loadMappings(entries)`
+
+Loads pre-existing placeholder-to-original mappings into the session store.
+
+```ts
+masker.loadMappings({ '<<EMAIL:0***>>': 'user@example.com' });
 ```
 
 ### `masker.getMetrics()`

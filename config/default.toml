@@ -3,18 +3,9 @@ enabled = ["pii", "credentials", "infrastructure"]
 
 sessionTTL = 300000  # 5 minutes
 
-[patterns.pii]
-email = true
-phone = true
-ssn = true
-
-[patterns.credentials]
-api_key = true
-aws_secret = true
-password = true
-oauth_token = true
-jwt = true
-
-[patterns.infrastructure]
-database_url = true
-redis_url = true
+# Per-pattern flags are for documentation only.
+# Control at runtime via patternFlags in createContextMasker() config.
+[patterns]
+pii = { email = true, phone = true, ssn = true, ipv4 = true, credit_card = true }
+credentials = { api_key = true, aws_secret = true, password = true, oauth_token = true, jwt = true, github_token = true, stripe_key = true, slack_token = true, private_key = true }
+infrastructure = { database_url = true, redis_url = true }
