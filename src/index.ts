@@ -83,7 +83,6 @@ export function createContextMasker(overrides?: Partial<MaskerConfig>): ContextM
     
     clear: () => {
       masker.clear();
-      store.clear();
       logger.log('Session cleared');
     },
     

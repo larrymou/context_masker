@@ -3,7 +3,6 @@ export type Category = 'pii' | 'credentials' | 'infrastructure';
 export interface PatternConfig {
   name: string;
   regex: RegExp;
-  placeholder: (match: string) => string;
   category: Category;
 }
 

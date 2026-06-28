@@ -54,5 +54,6 @@ export class Masker {
 
   clear(): void {
     this.counter.clear();
+    this.store.clear();
   }
 }

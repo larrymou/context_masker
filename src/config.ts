@@ -13,9 +13,16 @@ export function loadConfig(overrides?: Partial<MaskerConfig>): MaskerConfig {
     fileConfig = toml.parse(content);
   }
 
-  const rawPatterns = fileConfig.patterns as Record<string, Record<string, boolean>> | undefined;
+  const rawPatterns = fileConfig.patterns as Record<string, Record<string, unknown>> | undefined;
   const patternFlags: Record<string, Record<string, boolean>> | undefined = rawPatterns
-    ? rawPatterns as Record<string, Record<string, boolean>>
+    ? Object.fromEntries(
+        Object.entries(rawPatterns).map(([cat, flags]) => [
+          cat,
+          Object.fromEntries(
+            Object.entries(flags).map(([name, val]) => [name, val === true])
+          ),
+        ])
+      )
     : undefined;
 
   const config: MaskerConfig = {

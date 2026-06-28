@@ -13,7 +13,6 @@ export class CustomPatternRegistry {
     this.patterns.push({
       name: config.name,
       regex,
-      placeholder: () => config.placeholder,
       category: config.category,
     });
   }

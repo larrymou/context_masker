@@ -118,15 +118,10 @@ Create `config/default.toml`:
 enabled = ["pii", "credentials", "infrastructure"]
 sessionTTL = 300000  # 5 minutes
 
-[patterns.pii]
-email = true
-phone = true
-ssn = true
-
-[patterns.credentials]
-api_key = true
-aws_secret = true
-password = true
+[patterns]
+pii = { email = true, phone = true, ssn = true, ipv4 = true, credit_card = true }
+credentials = { api_key = true, aws_secret = true, password = true, jwt = true }
+infrastructure = { database_url = true }
 ```
 
 > Note: The `[patterns.*]` booleans are currently documentation only. Per-pattern

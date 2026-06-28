@@ -4,7 +4,6 @@ import { getEnabledPatterns } from '../patterns/index.js';
 export interface DetectionResult {
   type: string;
   value: string;
-  placeholder: string;
   start: number;
   end: number;
   category: Category;
@@ -44,7 +43,6 @@ export function detectSensitiveData(
       results.push({
         type: pattern.name,
         value: match[0],
-        placeholder: pattern.placeholder(match[0]),
         start: match.index,
         end: match.index + match[0].length,
         category: pattern.category,

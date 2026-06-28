@@ -21,9 +21,7 @@ function loadSession(): SessionData {
 
 function saveSession(data: SessionData): void {
   try {
-    if (!fs.existsSync(SESSION_DIR)) {
-      fs.mkdirSync(SESSION_DIR, { recursive: true, mode: 0o700 });
-    }
+    fs.mkdirSync(SESSION_DIR, { recursive: true, mode: 0o700 });
     fs.writeFileSync(SESSION_FILE, JSON.stringify(data, null, 2), { mode: 0o600 });
   } catch {}
 }
