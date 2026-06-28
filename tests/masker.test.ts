@@ -1,18 +1,21 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Masker } from '../src/masker.js';
+import { SessionStore } from '../src/session/store.js';
 
 describe('Masker', () => {
+  let store: SessionStore;
   let masker: Masker;
 
   beforeEach(() => {
-    masker = new Masker();
+    store = new SessionStore(60000);
+    masker = new Masker(store);
   });
 
   it('should mask email addresses with placeholders', () => {
     const text = 'Contact user@example.com for info';
     const result = masker.mask(text);
     
-    expect(result.masked).toContain('<<EMAIL:***>>');
+    expect(result.masked).toContain('<<EMAIL:0***>>');
     expect(result.masked).not.toContain('user@example.com');
     expect(result.mappings.size).toBe(1);
   });
@@ -21,7 +24,7 @@ describe('Masker', () => {
     const text = 'Email: test@company.com';
     const result = masker.mask(text);
     
-    const original = result.mappings.get('<<EMAIL:***>>');
+    const original = result.mappings.get('<<EMAIL:0***>>');
     expect(original).toBe('test@company.com');
   });
 

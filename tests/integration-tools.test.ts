@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { createContextMasker, ContextMasker } from '../src/index.js';
 
 describe('Tool Integration', () => {
@@ -19,8 +19,8 @@ describe('Tool Integration', () => {
 
       const { masked } = masker.mask(toolOutput);
 
-      expect(masked).toContain('<<DB_URL:***>>');
-      expect(masked).toContain('<<EMAIL:***>>');
+      expect(masked).toContain('<<DATABASE_URL:0***>>');
+      expect(masked).toContain('<<EMAIL:0***>>');
       expect(masked).not.toContain('pass@db.example.com');
       expect(masked).not.toContain('user@company.com');
     });
@@ -29,7 +29,7 @@ describe('Tool Integration', () => {
       const toolOutput = 'Remote: postgres://admin:pass@db.example.com/mydb, Contact: user@company.com';
       masker.mask(toolOutput);
 
-      const llmResponse = 'The database at <<DB_URL:***>> is connected. Email <<EMAIL:***>> for access.';
+      const llmResponse = 'The database at <<DATABASE_URL:0***>> is connected. Email <<EMAIL:0***>> for access.';
       const restored = masker.restore(llmResponse);
 
       expect(restored).toContain('postgres://admin:pass@db.example.com/mydb');
@@ -46,8 +46,8 @@ echo "Config loaded"`;
 
       const { masked } = masker.mask(toolOutput);
 
-      expect(masked).toContain('<<DB_URL:***>>');
-      expect(masked).toContain('<<API_KEY:***>>');
+      expect(masked).toContain('<<DATABASE_URL:0***>>');
+      expect(masked).toContain('<<API_KEY:0***>>');
     });
 
     it('should preserve non-sensitive context', () => {
@@ -69,8 +69,8 @@ DATABASE_URL=mysql://root:password123@db-host:3306/mydb
 
       const { masked } = masker.mask(toolOutput);
 
-      expect(masked).toContain('<<AWS_SECRET:***>>');
-      expect(masked).toContain('<<DB_URL:***>>');
+      expect(masked).toContain('<<AWS_SECRET:0***>>');
+      expect(masked).toContain('<<DATABASE_URL:0***>>');
     });
 
     it('should handle JSON config output', () => {
@@ -81,8 +81,8 @@ DATABASE_URL=mysql://root:password123@db-host:3306/mydb
 
       const { masked } = masker.mask(toolOutput);
 
-      expect(masked).toContain('<<DB_URL:***>>');
-      expect(masked).toContain('<<EMAIL:***>>');
+      expect(masked).toContain('<<DATABASE_URL:0***>>');
+      expect(masked).toContain('<<EMAIL:0***>>');
     });
   });
 
@@ -107,7 +107,7 @@ npm notice authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOi
 
       const { masked } = masker.mask(toolOutput);
 
-      expect(masked).toContain('<<JWT:***>>');
+      expect(masked).toContain('<<JWT:0***>>');
     });
   });
 
@@ -122,15 +122,16 @@ npm notice authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOi
       const toolOutput = `Config: {"database": {"url": "postgres://user:pass@host/db"}, "email": "test@test.com"}`;
       const { masked } = masker.mask(toolOutput);
 
-      expect(masked).toContain('<<DB_URL:***>>');
-      expect(masked).toContain('<<EMAIL:***>>');
+      expect(masked).toContain('<<DATABASE_URL:0***>>');
+      expect(masked).toContain('<<EMAIL:0***>>');
     });
 
     it('should handle multiple same placeholder types', () => {
       const toolOutput = 'Email 1: a@b.com, Email 2: c@d.com';
       const { masked } = masker.mask(toolOutput);
 
-      expect(masked).toContain('<<EMAIL:***>>');
+      expect(masked).toContain('<<EMAIL:0***>>');
+      expect(masked).toContain('<<EMAIL:1***>>');
       expect(masked).not.toContain('a@b.com');
       expect(masked).not.toContain('c@d.com');
     });
@@ -139,8 +140,8 @@ npm notice authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOi
       masker.mask('Email: test@test.com');
       masker.clear();
 
-      const restored = masker.restore('<<EMAIL:***>>');
-      expect(restored).toBe('<<EMAIL:***>>');
+      const restored = masker.restore('<<EMAIL:0***>>');
+      expect(restored).toBe('<<EMAIL:0***>>');
     });
   });
 

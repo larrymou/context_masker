@@ -13,9 +13,14 @@ export function loadConfig(overrides?: Partial<MaskerConfig>): MaskerConfig {
     fileConfig = toml.parse(content);
   }
 
+  const rawPatterns = fileConfig.patterns as Record<string, Record<string, boolean>> | undefined;
+  const patternFlags: Record<string, Record<string, boolean>> | undefined = rawPatterns
+    ? rawPatterns as Record<string, Record<string, boolean>>
+    : undefined;
+
   const config: MaskerConfig = {
     enabled: (fileConfig.enabled as Category[]) ?? ['pii', 'credentials', 'infrastructure'],
-    patterns: (fileConfig.patterns as Record<string, string>) ?? {},
+    patternFlags,
     sessionTTL: (fileConfig.sessionTTL as number) ?? 300000,
   };
 

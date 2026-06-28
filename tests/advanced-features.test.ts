@@ -19,7 +19,7 @@ describe('ContextMasker Advanced Features', () => {
 
     it('should track restore metrics', () => {
       masker.mask('Email: test@example.com');
-      masker.restore('<<EMAIL:***>>');
+      masker.restore('<<EMAIL:0***>>');
       
       const metrics = masker.getMetrics();
       expect(metrics.totalRestored).toBe(1);
@@ -53,7 +53,7 @@ describe('ContextMasker Advanced Features', () => {
       });
 
       const { masked } = masker.mask('User ID-123456 created');
-      expect(masked).toContain('<<CUSTOM_ID:***>>');
+      expect(masked).toContain('<<CUSTOM_ID:0***>>');
     });
 
     it('should remove custom pattern', () => {
@@ -68,7 +68,7 @@ describe('ContextMasker Advanced Features', () => {
       expect(removed).toBe(true);
 
       const { masked } = masker.mask('Value TEMP-123');
-      expect(masked).not.toContain('<<TEMP:***>>');
+      expect(masked).not.toContain('<<TEMP');
     });
 
     it('should load custom patterns from config', () => {
@@ -84,7 +84,7 @@ describe('ContextMasker Advanced Features', () => {
       });
 
       const { masked } = maskerWithConfig.mask('Config CFG-ABC');
-      expect(masked).toContain('<<CONFIG:***>>');
+      expect(masked).toContain('<<CONFIG_PATTERN:0***>>');
     });
   });
 
@@ -93,8 +93,8 @@ describe('ContextMasker Advanced Features', () => {
       masker.mask('Email: test@test.com');
       masker.clear();
 
-      const restored = masker.restore('<<EMAIL:***>>');
-      expect(restored).toBe('<<EMAIL:***>>');
+      const restored = masker.restore('<<EMAIL:0***>>');
+      expect(restored).toBe('<<EMAIL:0***>>');
     });
   });
 });

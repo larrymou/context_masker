@@ -13,10 +13,4 @@ export const infrastructurePatterns: PatternConfig[] = [
     placeholder: () => '<<REDIS:***>>',
     category: 'infrastructure',
   },
-  {
-    name: 'private_key',
-    regex: /-----BEGIN (?:RSA |EC )?PRIVATE KEY-----[\s\S]*?-----END (?:RSA |EC )?PRIVATE KEY-----/g,
-    placeholder: () => '<<PRIVATE_KEY:***>>',
-    category: 'infrastructure',
-  },
 ];

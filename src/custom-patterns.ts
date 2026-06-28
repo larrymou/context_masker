@@ -1,12 +1,4 @@
-import { PatternConfig, Category } from './types.js';
-
-export interface CustomPattern {
-  name: string;
-  regex: string;
-  flags?: string;
-  placeholder: string;
-  category: Category;
-}
+import { PatternConfig, Category, CustomPattern } from './types.js';
 
 export class CustomPatternRegistry {
   private patterns: PatternConfig[] = [];

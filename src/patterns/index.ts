@@ -13,6 +13,18 @@ export function getPatternsByCategory(category: Category): PatternConfig[] {
   return allPatterns.filter(p => p.category === category);
 }
 
-export function getEnabledPatterns(categories: Category[]): PatternConfig[] {
-  return allPatterns.filter(p => categories.includes(p.category));
+export function getEnabledPatterns(
+  categories: Category[],
+  patternFlags?: Record<string, Record<string, boolean>>
+): PatternConfig[] {
+  return allPatterns.filter(p => {
+    if (!categories.includes(p.category)) return false;
+    if (patternFlags) {
+      const categoryFlags = patternFlags[p.category];
+      if (categoryFlags && p.name in categoryFlags && !categoryFlags[p.name]) {
+        return false;
+      }
+    }
+    return true;
+  });
 }

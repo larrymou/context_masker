@@ -1,29 +1,32 @@
 import { Category, MaskResult, MaskerConfig, PatternConfig } from './types.js';
-import { detectSensitiveData, DetectionResult } from './engine/regex.js';
+import { detectSensitiveData } from './engine/regex.js';
 import { SessionStore } from './session/store.js';
-import { getEnabledPatterns } from './patterns/index.js';
 
 export class Masker {
   private store: SessionStore;
   private categories: Category[];
+  private patternFlags?: Record<string, Record<string, boolean>>;
   private customPatterns: PatternConfig[];
-  private compiledRegexCache: Map<string, RegExp> = new Map();
+  private counter = new Map<string, number>();
 
-  constructor(config?: Partial<MaskerConfig>, customPatterns: PatternConfig[] = []) {
-    this.store = new SessionStore(config?.sessionTTL ?? 300000);
+  constructor(store: SessionStore, config?: Partial<MaskerConfig>, customPatterns: PatternConfig[] = []) {
+    this.store = store;
     this.categories = config?.enabled ?? ['pii', 'credentials', 'infrastructure'];
+    this.patternFlags = config?.patternFlags;
     this.customPatterns = customPatterns;
   }
 
   mask(text: string): MaskResult {
-    const detections = detectSensitiveData(text, this.categories, this.customPatterns);
+    const detections = detectSensitiveData(text, this.categories, this.customPatterns, this.patternFlags);
     const mappings = new Map<string, string>();
     let masked = text;
 
     // Process in reverse order to maintain string positions
     for (let i = detections.length - 1; i >= 0; i--) {
       const detection = detections[i];
-      const placeholder = detection.placeholder;
+      const count = this.counter.get(detection.type) ?? 0;
+      this.counter.set(detection.type, count + 1);
+      const placeholder = `<<${detection.type.toUpperCase()}:${count}***>>`;
       
       masked = masked.slice(0, detection.start) + placeholder + masked.slice(detection.end);
       mappings.set(placeholder, detection.value);
@@ -33,11 +36,13 @@ export class Masker {
     return { masked, mappings };
   }
 
-  getOriginal(placeholder: string): string | null {
-    return this.store.get(placeholder);
+  loadMappings(entries: Record<string, string>): void {
+    for (const [placeholder, original] of Object.entries(entries)) {
+      this.store.set(placeholder, original);
+    }
   }
 
   clear(): void {
-    this.store.clear();
+    this.counter.clear();
   }
 }

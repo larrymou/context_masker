@@ -9,7 +9,7 @@ export interface PatternConfig {
 
 export interface MaskerConfig {
   enabled: Category[];
-  patterns: Record<string, string>;
+  patternFlags?: Record<string, Record<string, boolean>>;
   sessionTTL: number;
   logging?: boolean;
   customPatterns?: CustomPattern[];

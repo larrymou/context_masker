@@ -1,14 +1,17 @@
-import { MaskerConfig, Category, CustomPattern, PatternConfig } from './types.js';
+import { MaskerConfig, Category, CustomPattern } from './types.js';
 import { Masker } from './masker.js';
 import { Restorer } from './restorer.js';
 import { SessionStore } from './session/store.js';
 import { MaskingLogger, MaskingMetrics } from './logger.js';
 import { CustomPatternRegistry } from './custom-patterns.js';
+import { getEnabledPatterns } from './patterns/index.js';
+import { loadConfig } from './config.js';
 
 export interface ContextMasker {
   mask: (text: string) => { masked: string; mappings: Map<string, string> };
   restore: (text: string) => string;
   clear: () => void;
+  loadMappings: (entries: Record<string, string>) => void;
   getMetrics: () => MaskingMetrics;
   resetMetrics: () => void;
   setLogging: (enabled: boolean) => void;
@@ -16,21 +19,21 @@ export interface ContextMasker {
   removeCustomPattern: (name: string) => boolean;
 }
 
-export function createContextMasker(config?: Partial<MaskerConfig>): ContextMasker {
-  const store = new SessionStore(config?.sessionTTL ?? 300000);
-  const logger = new MaskingLogger(config?.logging ?? false);
+export function createContextMasker(overrides?: Partial<MaskerConfig>): ContextMasker {
+  const resolved = overrides ? { ...loadConfig(), ...overrides } : loadConfig();
+  const store = new SessionStore(resolved.sessionTTL ?? 300000);
+  const logger = new MaskingLogger(resolved.logging ?? false);
   const customRegistry = new CustomPatternRegistry();
   
-  // Load custom patterns from config
-  if (config?.customPatterns) {
-    customRegistry.loadFromConfig(config.customPatterns);
+  if (resolved.customPatterns) {
+    customRegistry.loadFromConfig(resolved.customPatterns);
   }
   
-  let masker = new Masker(config, customRegistry.getPatterns());
+  let masker = new Masker(store, resolved, customRegistry.getPatterns());
   const restorer = new Restorer(store);
 
   const rebuildMasker = () => {
-    masker = new Masker(config, customRegistry.getPatterns());
+    masker = new Masker(store, resolved, customRegistry.getPatterns());
   };
 
   return {
@@ -39,21 +42,28 @@ export function createContextMasker(config?: Partial<MaskerConfig>): ContextMask
       const result = masker.mask(text);
       const duration = Date.now() - start;
       
-      // Sync mappings to shared store
-      for (const [placeholder, original] of result.mappings) {
-        store.set(placeholder, original);
-      }
-      
-      // Record metrics
       const types: Record<string, number> = {};
       const categories: Record<string, number> = {};
       
       for (const [placeholder] of result.mappings) {
-        const type = placeholder.replace(/^<<|:?\*\*\*>>$/g, '');
+        const type = placeholder.replace(/^<<|:\d+\*\*\*>>$/g, '');
         types[type] = (types[type] || 0) + 1;
       }
       
-      logger.recordMask(result.mappings.size, types, {}, duration);
+      const enabledCategories = resolved.enabled ?? ['pii', 'credentials', 'infrastructure'];
+      for (const cat of enabledCategories) {
+        const patterns = getEnabledPatterns([cat], resolved.patternFlags);
+        let count = 0;
+        for (const [placeholder] of result.mappings) {
+          const type = placeholder.replace(/^<<|:\d+\*\*\*>>$/g, '').toLowerCase();
+          if (patterns.some(p => p.name === type)) {
+            count++;
+          }
+        }
+        if (count > 0) categories[cat] = count;
+      }
+      
+      logger.recordMask(result.mappings.size, types, categories, duration);
       
       return result;
     },
@@ -63,8 +73,7 @@ export function createContextMasker(config?: Partial<MaskerConfig>): ContextMask
       const result = restorer.restore(text);
       const duration = Date.now() - start;
       
-      // Count restored placeholders
-      const matches = text.match(/<<[A-Z_]+:\*\*\*>>/g) || [];
+      const matches = text.match(/<<[A-Z_]+:\d+\*\*\*>>/g) || [];
       logger.recordRestore(matches.length, duration);
       
       return result;
@@ -74,6 +83,10 @@ export function createContextMasker(config?: Partial<MaskerConfig>): ContextMask
       masker.clear();
       store.clear();
       logger.log('Session cleared');
+    },
+    
+    loadMappings: (entries: Record<string, string>) => {
+      masker.loadMappings(entries);
     },
     
     getMetrics: () => logger.getMetrics(),

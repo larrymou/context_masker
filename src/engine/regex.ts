@@ -30,9 +30,10 @@ export function clearRegexCache(): void {
 export function detectSensitiveData(
   text: string,
   categories: Category[] = ['pii', 'credentials', 'infrastructure'],
-  customPatterns: PatternConfig[] = []
+  customPatterns: PatternConfig[] = [],
+  patternFlags?: Record<string, Record<string, boolean>>
 ): DetectionResult[] {
-  const patterns = [...getEnabledPatterns(categories), ...customPatterns];
+  const patterns = [...getEnabledPatterns(categories, patternFlags), ...customPatterns];
   const results: DetectionResult[] = [];
 
   for (const pattern of patterns) {

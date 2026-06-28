@@ -14,14 +14,14 @@ describe('Context Masker Integration', () => {
     // Mask before sending to LLM
     const { masked } = masker.mask(toolOutput);
     
-    expect(masked).toContain('<<DB_URL:***>>');
-    expect(masked).toContain('<<EMAIL:***>>');
-    expect(masked).toContain('<<API_KEY:***>>');
+    expect(masked).toContain('<<DATABASE_URL:0***>>');
+    expect(masked).toContain('<<EMAIL:0***>>');
+    expect(masked).toContain('<<API_KEY:0***>>');
     expect(masked).not.toContain('secret123');
     expect(masked).not.toContain('support@company.com');
     
     // Restore after receiving LLM response
-    const llmResponse = `I found the database at <<DB_URL:***>> and emailed <<EMAIL:***>>`;
+    const llmResponse = `I found the database at <<DATABASE_URL:0***>> and emailed <<EMAIL:0***>>`;
     const restored = masker.restore(llmResponse);
     
     expect(restored).toContain('postgres://admin:secret123@db.example.com:5432/mydb');
@@ -34,7 +34,7 @@ describe('Context Masker Integration', () => {
     const input = 'Config: {"db": "mysql://root:pass@localhost/db", "email": "admin@test.com"}';
     const { masked } = masker.mask(input);
     
-    expect(masked).toContain('<<DB_URL:***>>');
-    expect(masked).toContain('<<EMAIL:***>>');
+    expect(masked).toContain('<<DATABASE_URL:0***>>');
+    expect(masked).toContain('<<EMAIL:0***>>');
   });
 });
